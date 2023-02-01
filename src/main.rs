@@ -1,7 +1,7 @@
 use speedy2d::{
     color::Color,
     dimen::UVec2,
-    window::{WindowCreationOptions, WindowHandler, WindowPosition, WindowSize},
+    window::{VirtualKeyCode, WindowCreationOptions, WindowHandler, WindowPosition, WindowSize},
     Window,
 };
 
@@ -39,5 +39,19 @@ impl WindowHandler for App {
 
         // Request that we draw another frame once this one has finished
         helper.request_redraw();
+    }
+
+    fn on_key_down(
+        &mut self,
+        helper: &mut speedy2d::window::WindowHelper<()>,
+        virtual_key_code: Option<speedy2d::window::VirtualKeyCode>,
+        scancode: speedy2d::window::KeyScancode,
+    ) {
+        if let Some(key_code) = virtual_key_code {
+            match key_code {
+                VirtualKeyCode::Escape => helper.terminate_loop(),
+                a => println!("Key: {a:?}, scancode: {scancode}"),
+            }
+        }
     }
 }
