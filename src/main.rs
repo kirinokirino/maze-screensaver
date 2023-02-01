@@ -8,8 +8,8 @@ use speedy2d::{
     Graphics2D, Window,
 };
 
-mod grid;
-use grid::Grid;
+mod maze;
+use maze::Maze;
 
 const WINDOW_X: usize = 480;
 const WINDOW_Y: usize = 360;
@@ -33,13 +33,13 @@ fn main() {
     ));
 }
 struct App {
-    grid: Grid,
+    maze: Maze,
 }
 
 impl App {
     pub fn new(width: usize, height: usize, scale: f32) -> Self {
         Self {
-            grid: Grid::new(width, height, scale),
+            maze: Maze::new(width, height, scale),
         }
     }
 }
@@ -47,7 +47,7 @@ impl App {
 impl WindowHandler for App {
     fn on_draw(&mut self, helper: &mut WindowHelper<()>, graphics: &mut Graphics2D) {
         graphics.clear_screen(Color::from_rgb(0.8, 0.9, 1.0));
-        self.grid.draw(graphics);
+        self.maze.draw(graphics);
         // Request that we draw another frame once this one has finished
         helper.request_redraw();
     }
@@ -61,6 +61,7 @@ impl WindowHandler for App {
         if let Some(key_code) = virtual_key_code {
             match key_code {
                 VirtualKeyCode::Escape => helper.terminate_loop(),
+                VirtualKeyCode::Space => self.maze.step(),
                 a => println!("Key: {a:?}, scancode: {scancode}"),
             }
         }
