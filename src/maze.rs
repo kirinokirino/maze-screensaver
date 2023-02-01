@@ -115,29 +115,39 @@ impl Maze {
         }
     }
 
-    pub fn draw(&self, graphics: &mut Graphics2D) {
+    pub fn draw(&self, graphics: &mut Graphics2D, step: u64) {
         let cell_size = Vector2::new(self.scale as f32, self.scale as f32);
         let half_cell_size = cell_size / 2.0;
 
         let padding = Vector2::new(0.1, 0.1);
-        for cell in self.visited_cells.iter() {
-            let pos = cell.as_vector2(self.scale);
-            graphics.draw_rectangle(
-                Rectangle::new(pos + padding, pos + cell_size - padding - padding),
-                Color::from_gray(0.8),
-            )
+
+        if false {
+            for cell in self.visited_cells.iter() {
+                let pos = cell.as_vector2(self.scale);
+                graphics.draw_rectangle(
+                    Rectangle::new(pos + padding, pos + cell_size - padding - padding),
+                    Color::from_gray(0.8),
+                )
+            }
         }
 
+        fastrand::seed(999999);
         for track in self.tracks.iter() {
+            let track_color = Color::from_rgb(
+                fastrand::f32() * 0.8 + 0.2,
+                fastrand::f32() * 0.8 + 0.2,
+                fastrand::f32() * 0.8 + 0.2,
+            );
             for path_segment in track.windows(2) {
                 graphics.draw_line(
                     path_segment[0].as_vector2(self.scale) + half_cell_size,
                     path_segment[1].as_vector2(self.scale) + half_cell_size,
-                    2.0,
-                    Color::from_gray(0.3),
+                    self.scale / 2.0,
+                    track_color,
                 );
             }
         }
+        fastrand::seed(step);
 
         let start_pos = self.start.as_vector2(self.scale);
         graphics.draw_rectangle(
@@ -191,6 +201,33 @@ impl Maze {
                 }
             }
         }
+    }
+
+    pub fn paths_lengths(&self) {
+        use intmap::IntMap;
+        use itertools::sorted;
+        let mut map: IntMap<u64> = IntMap::new();
+        for path in self.tracks.iter() {
+            let length = path.len();
+            let x = map.get_mut(length.try_into().unwrap());
+            match x {
+                Some(x) => *x += 1,
+                None => {
+                    map.insert(length.try_into().unwrap(), 1);
+                }
+            }
+        }
+
+        let mut data = String::new();
+        for (x, y) in sorted(map.drain()) {
+            println!("{y}\t  tracks of length\t {x}");
+            if data.is_empty() {
+                data = format!("{y}");
+            } else {
+                data = format!("{data}, {y}");
+            }
+        }
+        println!("{data}");
     }
 
     fn is_outside(&self, pos: GridPosition) -> bool {

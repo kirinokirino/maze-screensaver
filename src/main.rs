@@ -35,6 +35,7 @@ fn main() {
 struct App {
     maze: Maze,
     autoplay: bool,
+    step: u64,
 }
 
 impl App {
@@ -42,14 +43,16 @@ impl App {
         Self {
             maze: Maze::new(width, height, scale),
             autoplay: true,
+            step: 0,
         }
     }
 }
 
 impl WindowHandler for App {
     fn on_draw(&mut self, helper: &mut WindowHelper<()>, graphics: &mut Graphics2D) {
-        graphics.clear_screen(Color::from_gray(1.0));
-        self.maze.draw(graphics);
+        self.step += 1;
+        graphics.clear_screen(Color::from_gray(0.0));
+        self.maze.draw(graphics, self.step);
 
         if self.autoplay {
             self.maze.step();
@@ -65,6 +68,7 @@ impl WindowHandler for App {
     ) {
         if let Some(key_code) = virtual_key_code {
             match key_code {
+                VirtualKeyCode::U => self.maze.paths_lengths(),
                 VirtualKeyCode::Escape => helper.terminate_loop(),
                 VirtualKeyCode::Space => {
                     self.maze.step();

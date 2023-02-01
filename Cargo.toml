@@ -8,6 +8,8 @@ edition = "2021"
 [dependencies]
 speedy2d = { version = "1.9.5", git = "https://github.com/kirinokirino/Speedy2D", default-features = false, features = ["windowing-x11", "windowing"] }
 fastrand = "1.8.0"
+intmap = "2.0.0"
+itertools = "0.10.5"
 
 [profile.release]
 codegen-units = 1
