@@ -46,7 +46,7 @@ impl App {
 
 impl WindowHandler for App {
     fn on_draw(&mut self, helper: &mut WindowHelper<()>, graphics: &mut Graphics2D) {
-        graphics.clear_screen(Color::from_rgb(0.8, 0.9, 1.0));
+        graphics.clear_screen(Color::from_gray(1.0));
         self.maze.draw(graphics);
         // Request that we draw another frame once this one has finished
         helper.request_redraw();

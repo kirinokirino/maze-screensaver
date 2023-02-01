@@ -85,6 +85,7 @@ pub struct Maze {
     finish: GridPosition,
 
     walker: Walker,
+    visited_cells: Vec<GridPosition>,
 
     state: MazeState,
 }
@@ -105,12 +106,23 @@ impl Maze {
             start,
             finish,
             walker: Walker::new(start),
+            visited_cells: vec![start],
             state: MazeState::Generating,
         }
     }
 
     pub fn draw(&self, graphics: &mut Graphics2D) {
         let cell_size = Vector2::new(self.scale as f32, self.scale as f32);
+
+        let padding = Vector2::new(0.1, 0.1);
+        for cell in self.visited_cells.iter() {
+            let pos = cell.as_vector2(self.scale);
+            graphics.draw_rectangle(
+                Rectangle::new(pos + padding, pos + cell_size - padding - padding),
+                Color::from_gray(0.8),
+            )
+        }
+
         let start_pos = self.start.as_vector2(self.scale);
         graphics.draw_rectangle(
             Rectangle::new(start_pos, start_pos + cell_size),
@@ -140,12 +152,15 @@ impl Maze {
         let goto = neighbours
             .iter()
             .filter(|neighbour| {
-                !self.is_outside(**neighbour) && !self.walker.path.contains(&neighbour)
+                !self.is_outside(**neighbour) && !self.visited_cells.contains(&neighbour)
             })
             .next();
 
         match goto {
-            Some(next_pos) => self.walker.path.push(*next_pos),
+            Some(next_pos) => {
+                self.walker.path.push(*next_pos);
+                self.visited_cells.push(*next_pos);
+            }
             None => {
                 self.walker.path.pop();
                 if self.walker.path.is_empty() {
