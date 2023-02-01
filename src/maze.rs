@@ -47,12 +47,14 @@ impl Walker {
     pub fn draw(&self, graphics: &mut Graphics2D, scale: f32) {
         let half_cell_size = Vector2::new(scale / 2.0, scale / 2.0);
 
+		let trail = Color::from_hex_rgb(0xbab19d);
+        
         for path_segment in self.path.windows(2) {
             graphics.draw_line(
                 path_segment[0].as_vector2(scale) + half_cell_size,
                 path_segment[1].as_vector2(scale) + half_cell_size,
                 2.0,
-                Color::BLACK,
+                trail,
             );
         }
 
@@ -71,15 +73,15 @@ impl Walker {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum MazeState {
+pub enum MazeState {
     Generating,
     Finished,
 }
 
 pub struct Maze {
-    scale: f32,
-    width: usize,
-    height: usize,
+    pub scale: f32,
+    pub width: usize,
+    pub height: usize,
 
     start: GridPosition,
     finish: GridPosition,
@@ -89,7 +91,7 @@ pub struct Maze {
     backtrack: Vec<GridPosition>,
     tracks: Vec<Vec<GridPosition>>,
 
-    state: MazeState,
+    pub state: MazeState,
 }
 
 impl Maze {
@@ -134,9 +136,9 @@ impl Maze {
         fastrand::seed(999999);
         for track in self.tracks.iter() {
             let track_color = Color::from_rgb(
-                fastrand::f32() * 0.8 + 0.2,
-                fastrand::f32() * 0.8 + 0.2,
-                fastrand::f32() * 0.8 + 0.2,
+                fastrand::f32() * 0.2 + 0.6,
+                fastrand::f32() * 0.2 + 0.6,
+                fastrand::f32() * 0.4 + 0.2,
             );
             for path_segment in track.windows(2) {
                 graphics.draw_line(
@@ -149,17 +151,19 @@ impl Maze {
         }
         fastrand::seed(step);
 
-        let start_pos = self.start.as_vector2(self.scale);
-        graphics.draw_rectangle(
-            Rectangle::new(start_pos, start_pos + cell_size),
-            Color::from_rgb(0.2, 0.6, 0.3),
-        );
+        if false {
+	        let start_pos = self.start.as_vector2(self.scale);
+	        graphics.draw_rectangle(
+	            Rectangle::new(start_pos, start_pos + cell_size),
+	            Color::from_rgb(0.2, 0.6, 0.3),
+	        );
 
-        let finish_pos = self.finish.as_vector2(self.scale);
-        graphics.draw_rectangle(
-            Rectangle::new(finish_pos, finish_pos + cell_size),
-            Color::from_rgb(0.2, 0.3, 0.7),
-        );
+	        let finish_pos = self.finish.as_vector2(self.scale);
+	        graphics.draw_rectangle(
+	            Rectangle::new(finish_pos, finish_pos + cell_size),
+	            Color::from_rgb(0.2, 0.3, 0.7),
+	        );
+        }
 
         self.walker.draw(graphics, self.scale);
     }
@@ -225,7 +229,11 @@ impl Maze {
         }
         println!("{data}");
     }
-
+    
+	pub fn p(&mut self) {
+		self.tracks = self.tracks.clone().into_iter().filter(|track| track.len() > 10).collect();
+	}
+	
     fn is_outside(&self, pos: GridPosition) -> bool {
         pos.x < 0 || pos.y < 0 || pos.x >= self.width as i32 || pos.y >= self.height as i32
     }
