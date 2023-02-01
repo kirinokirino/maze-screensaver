@@ -5,6 +5,9 @@ use speedy2d::{
     Window,
 };
 
+mod grid;
+use grid::Grid;
+
 const WINDOW_X: usize = 480;
 const WINDOW_Y: usize = 360;
 const WINDOW_SIZE: WindowSize =
@@ -17,14 +20,17 @@ fn main() {
             .with_transparent(true),
     )
     .expect("Wasn't able to create a window!");
-    window.run_loop(App::new());
+    window.run_loop(App::new(48, 36));
+}
+struct App {
+    grid: Grid,
 }
 
-struct App {}
-
 impl App {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(width: usize, height: usize) -> Self {
+        Self {
+            grid: Grid::new(width, height),
+        }
     }
 }
 
