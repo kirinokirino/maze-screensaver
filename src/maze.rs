@@ -45,7 +45,7 @@ impl Walker {
     }
 
     pub fn draw(&self, graphics: &mut Graphics2D, scale: f32) {
-        let half_cell_size = Vector2::new(scale as f32 / 2.0, scale as f32 / 2.0);
+        let half_cell_size = Vector2::new(scale / 2.0, scale / 2.0);
 
         for path_segment in self.path.windows(2) {
             graphics.draw_line(
@@ -116,7 +116,7 @@ impl Maze {
     }
 
     pub fn draw(&self, graphics: &mut Graphics2D, step: u64) {
-        let cell_size = Vector2::new(self.scale as f32, self.scale as f32);
+        let cell_size = Vector2::new(self.scale, self.scale);
         let half_cell_size = cell_size / 2.0;
 
         let padding = Vector2::new(0.1, 0.1);
@@ -176,18 +176,14 @@ impl Maze {
             .get_neighbours();
         fastrand::shuffle(&mut neighbours);
         let goto = neighbours
-            .iter()
-            .filter(|neighbour| {
-                !self.is_outside(**neighbour) && !self.visited_cells.contains(&neighbour)
-            })
-            .next();
+            .iter().find(|neighbour| !self.is_outside(**neighbour) && !self.visited_cells.contains(neighbour));
 
         match goto {
             Some(next_pos) => {
                 self.walker.path.push(*next_pos);
                 self.visited_cells.push(*next_pos);
                 if !self.backtrack.is_empty() {
-                    let track = std::mem::replace(&mut self.backtrack, Vec::new());
+                    let track = std::mem::take(&mut self.backtrack);
                     self.tracks.push(track);
                 }
             }
@@ -197,7 +193,7 @@ impl Maze {
                 if self.walker.path.is_empty() {
                     self.state = MazeState::Finished;
                     self.tracks
-                        .push(std::mem::replace(&mut self.backtrack, Vec::new()));
+                        .push(std::mem::take(&mut self.backtrack));
                 }
             }
         }
