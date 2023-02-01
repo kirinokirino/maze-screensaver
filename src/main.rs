@@ -34,12 +34,14 @@ fn main() {
 }
 struct App {
     maze: Maze,
+    autoplay: bool,
 }
 
 impl App {
     pub fn new(width: usize, height: usize, scale: f32) -> Self {
         Self {
             maze: Maze::new(width, height, scale),
+            autoplay: true,
         }
     }
 }
@@ -48,8 +50,11 @@ impl WindowHandler for App {
     fn on_draw(&mut self, helper: &mut WindowHelper<()>, graphics: &mut Graphics2D) {
         graphics.clear_screen(Color::from_gray(1.0));
         self.maze.draw(graphics);
-        // Request that we draw another frame once this one has finished
-        helper.request_redraw();
+
+        if self.autoplay {
+            self.maze.step();
+            helper.request_redraw();
+        }
     }
 
     fn on_key_down(
@@ -61,7 +66,10 @@ impl WindowHandler for App {
         if let Some(key_code) = virtual_key_code {
             match key_code {
                 VirtualKeyCode::Escape => helper.terminate_loop(),
-                VirtualKeyCode::Space => self.maze.step(),
+                VirtualKeyCode::Space => {
+                    self.maze.step();
+                    helper.request_redraw();
+                }
                 a => println!("Key: {a:?}, scancode: {scancode}"),
             }
         }

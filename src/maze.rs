@@ -86,6 +86,8 @@ pub struct Maze {
 
     walker: Walker,
     visited_cells: Vec<GridPosition>,
+    backtrack: Vec<GridPosition>,
+    tracks: Vec<Vec<GridPosition>>,
 
     state: MazeState,
 }
@@ -107,12 +109,15 @@ impl Maze {
             finish,
             walker: Walker::new(start),
             visited_cells: vec![start],
+            backtrack: Vec::new(),
+            tracks: Vec::new(),
             state: MazeState::Generating,
         }
     }
 
     pub fn draw(&self, graphics: &mut Graphics2D) {
         let cell_size = Vector2::new(self.scale as f32, self.scale as f32);
+        let half_cell_size = cell_size / 2.0;
 
         let padding = Vector2::new(0.1, 0.1);
         for cell in self.visited_cells.iter() {
@@ -121,6 +126,17 @@ impl Maze {
                 Rectangle::new(pos + padding, pos + cell_size - padding - padding),
                 Color::from_gray(0.8),
             )
+        }
+
+        for track in self.tracks.iter() {
+            for path_segment in track.windows(2) {
+                graphics.draw_line(
+                    path_segment[0].as_vector2(self.scale) + half_cell_size,
+                    path_segment[1].as_vector2(self.scale) + half_cell_size,
+                    2.0,
+                    Color::from_gray(0.3),
+                );
+            }
         }
 
         let start_pos = self.start.as_vector2(self.scale);
@@ -160,11 +176,18 @@ impl Maze {
             Some(next_pos) => {
                 self.walker.path.push(*next_pos);
                 self.visited_cells.push(*next_pos);
+                if !self.backtrack.is_empty() {
+                    let track = std::mem::replace(&mut self.backtrack, Vec::new());
+                    self.tracks.push(track);
+                }
             }
             None => {
-                self.walker.path.pop();
+                self.backtrack
+                    .push(self.walker.path.pop().expect("Walker path can't be empty"));
                 if self.walker.path.is_empty() {
                     self.state = MazeState::Finished;
+                    self.tracks
+                        .push(std::mem::replace(&mut self.backtrack, Vec::new()));
                 }
             }
         }
