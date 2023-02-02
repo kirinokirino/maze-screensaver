@@ -15,6 +15,7 @@ pub struct Config {
     pub steps_per_draw: usize,
     pub window_width: usize,
     pub window_height: usize,
+    pub decorations: bool,
 }
 
 impl Config {
@@ -53,6 +54,11 @@ impl Config {
                 .unwrap_or(360)
                 .try_into()
                 .unwrap();
+            self.decorations = ini
+                .getbool(default_section, "decorations")?
+                .unwrap_or(true)
+                .try_into()
+                .unwrap();
         }
         Ok(())
     }
@@ -65,6 +71,7 @@ impl Default for Config {
             steps_per_draw: 1,
             window_width: 480,
             window_height: 360,
+            decorations: true,
         }
     }
 }

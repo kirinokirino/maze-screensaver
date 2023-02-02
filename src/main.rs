@@ -19,10 +19,11 @@ fn main() {
         SETTINGS.read().unwrap().window_width as u32,
         SETTINGS.read().unwrap().window_height as u32,
     ));
+    let decorations = SETTINGS.read().unwrap().decorations;
     let window = Window::new_with_options(
         "FLOATING",
         WindowCreationOptions::new_windowed(window_size, Some(WindowPosition::Center))
-            .with_decorations(false)
+            .with_decorations(decorations)
             .with_transparent(true),
     )
     .expect("Wasn't able to create a window!");
