@@ -11,23 +11,24 @@ use speedy2d::{
 mod maze;
 use maze::{Maze, MazeState};
 
-const STEPS_PER_DRAW: usize = 1;
-const SLEEP_MS_PER_DRAW: u32 = 60;
-const WINDOW_X: usize = 900;
-const WINDOW_Y: usize = 600;
-const WINDOW_SIZE: WindowSize =
-    WindowSize::PhysicalPixels(UVec2::new(WINDOW_X as u32, WINDOW_Y as u32));
+mod config;
+use config::SETTINGS;
+
 fn main() {
+    let window_size = WindowSize::PhysicalPixels(UVec2::new(
+        SETTINGS.read().unwrap().window_width as u32,
+        SETTINGS.read().unwrap().window_height as u32,
+    ));
     let window = Window::new_with_options(
         "FLOATING",
-        WindowCreationOptions::new_windowed(WINDOW_SIZE, Some(WindowPosition::Center))
+        WindowCreationOptions::new_windowed(window_size, Some(WindowPosition::Center))
             .with_decorations(false)
             .with_transparent(true),
     )
     .expect("Wasn't able to create a window!");
     let cell_size = 7.0;
-    let cells_width = WINDOW_X as f32 / cell_size;
-    let cells_height = WINDOW_Y as f32 / cell_size;
+    let cells_width = SETTINGS.read().unwrap().window_width as f32 / cell_size;
+    let cells_height = SETTINGS.read().unwrap().window_height as f32 / cell_size;
     window.run_loop(App::new(
         cells_width.round() as usize,
         cells_height.round() as usize,
@@ -50,8 +51,13 @@ impl App {
     }
 
     pub fn reset(&mut self) {
-    	let Maze { width, height, scale, .. } = self.maze;
-		self.maze = Maze::new(width, height, scale);
+        let Maze {
+            width,
+            height,
+            scale,
+            ..
+        } = self.maze;
+        self.maze = Maze::new(width, height, scale);
     }
 }
 
@@ -62,13 +68,15 @@ impl WindowHandler for App {
         self.maze.draw(graphics, self.step);
 
         if self.autoplay {
-        	if self.maze.state == MazeState::Finished {
-				self.reset();
-        	}
-        	for _ in 0..STEPS_PER_DRAW {
-            	self.maze.step();
+            if self.maze.state == MazeState::Finished {
+                self.reset();
             }
-            std::thread::sleep(std::time::Duration::from_millis(SLEEP_MS_PER_DRAW.into()));
+            for _ in 0..SETTINGS.read().unwrap().steps_per_draw {
+                self.maze.step();
+            }
+            std::thread::sleep(std::time::Duration::from_millis(
+                SETTINGS.read().unwrap().sleep_ms_per_frame.into(),
+            ));
             helper.request_redraw();
         }
     }
@@ -83,9 +91,9 @@ impl WindowHandler for App {
             match key_code {
                 VirtualKeyCode::U => self.maze.paths_lengths(),
                 VirtualKeyCode::E => {
-                	self.autoplay = !self.autoplay;
-                	helper.request_redraw();
-                },
+                    self.autoplay = !self.autoplay;
+                    helper.request_redraw();
+                }
                 VirtualKeyCode::O => self.maze.p(),
                 VirtualKeyCode::A => self.reset(),
                 VirtualKeyCode::Escape => helper.terminate_loop(),

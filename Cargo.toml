@@ -10,6 +10,8 @@ speedy2d = { version = "1.9.5", git = "https://github.com/kirinokirino/Speedy2D"
 fastrand = "1.8.0"
 intmap = "2.0.0"
 itertools = "0.10.5"
+lazy_static = "1.4.0"
+configparser = "3.0.2"
 
 [profile.release]
 codegen-units = 1
