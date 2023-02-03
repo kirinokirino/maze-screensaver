@@ -4,7 +4,6 @@ use lazy_static::lazy_static;
 use std::default::Default;
 use std::error::Error;
 use std::sync::RwLock;
-use std::thread::panicking;
 
 lazy_static! {
     pub static ref SETTINGS: RwLock<Config> = RwLock::new(Config::new());
@@ -16,6 +15,8 @@ pub struct Config {
     pub window_width: usize,
     pub window_height: usize,
     pub decorations: bool,
+    pub fg_theme: String,
+    pub bg_theme: String,
 }
 
 impl Config {
@@ -59,6 +60,12 @@ impl Config {
                 .unwrap_or(true)
                 .try_into()
                 .unwrap();
+            self.fg_theme = ini
+                .get(default_section, "fg_theme")
+                .unwrap_or("light".to_string());
+            self.bg_theme = ini
+                .get(default_section, "bg_theme")
+                .unwrap_or("light".to_string());
         }
         Ok(())
     }
@@ -72,6 +79,8 @@ impl Default for Config {
             window_width: 480,
             window_height: 360,
             decorations: true,
+            bg_theme: "light".to_string(),
+            fg_theme: "light".to_string(),
         }
     }
 }

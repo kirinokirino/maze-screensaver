@@ -1,5 +1,7 @@
 use speedy2d::{color::Color, dimen::Vector2, shape::Rectangle, Graphics2D};
 
+use crate::theme;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct GridPosition {
     x: i32,
@@ -47,8 +49,8 @@ impl Walker {
     pub fn draw(&self, graphics: &mut Graphics2D, scale: f32) {
         let half_cell_size = Vector2::new(scale / 2.0, scale / 2.0);
 
-		let trail = Color::from_hex_rgb(0xbab19d);
-        
+        let trail = Color::from_rgb((theme().0 - 0.79).abs(), (theme().0 - 0.69).abs(), (theme().0 - 0.61).abs());
+
         for path_segment in self.path.windows(2) {
             graphics.draw_line(
                 path_segment[0].as_vector2(scale) + half_cell_size,
@@ -66,7 +68,7 @@ impl Walker {
                     last_position + padding,
                     last_position + half_cell_size + padding,
                 ),
-                Color::from_rgb(0.7, 0.3, 0.7),
+                Color::from_rgb(0.5, 0.5, 0.5),
             );
         }
     }
@@ -133,12 +135,13 @@ impl Maze {
             }
         }
 
+        let theme = theme().0;
         fastrand::seed(999999);
         for track in self.tracks.iter() {
             let track_color = Color::from_rgb(
-                fastrand::f32() * 0.2 + 0.6,
-                fastrand::f32() * 0.2 + 0.6,
-                fastrand::f32() * 0.4 + 0.2,
+                (theme - (fastrand::f32() * 0.2 + 0.6)).abs(),
+                (theme - (fastrand::f32() * 0.2 + 0.6)).abs(),
+                (theme - (fastrand::f32() * 0.4 + 0.2)).abs(),
             );
             for path_segment in track.windows(2) {
                 graphics.draw_line(
@@ -152,17 +155,17 @@ impl Maze {
         fastrand::seed(step);
 
         if false {
-	        let start_pos = self.start.as_vector2(self.scale);
-	        graphics.draw_rectangle(
-	            Rectangle::new(start_pos, start_pos + cell_size),
-	            Color::from_rgb(0.2, 0.6, 0.3),
-	        );
+            let start_pos = self.start.as_vector2(self.scale);
+            graphics.draw_rectangle(
+                Rectangle::new(start_pos, start_pos + cell_size),
+                Color::from_rgb(0.2, 0.6, 0.3),
+            );
 
-	        let finish_pos = self.finish.as_vector2(self.scale);
-	        graphics.draw_rectangle(
-	            Rectangle::new(finish_pos, finish_pos + cell_size),
-	            Color::from_rgb(0.2, 0.3, 0.7),
-	        );
+            let finish_pos = self.finish.as_vector2(self.scale);
+            graphics.draw_rectangle(
+                Rectangle::new(finish_pos, finish_pos + cell_size),
+                Color::from_rgb(0.2, 0.3, 0.7),
+            );
         }
 
         self.walker.draw(graphics, self.scale);
@@ -179,8 +182,9 @@ impl Maze {
             .expect("Walker path can't be empty")
             .get_neighbours();
         fastrand::shuffle(&mut neighbours);
-        let goto = neighbours
-            .iter().find(|neighbour| !self.is_outside(**neighbour) && !self.visited_cells.contains(neighbour));
+        let goto = neighbours.iter().find(|neighbour| {
+            !self.is_outside(**neighbour) && !self.visited_cells.contains(neighbour)
+        });
 
         match goto {
             Some(next_pos) => {
@@ -196,8 +200,7 @@ impl Maze {
                     .push(self.walker.path.pop().expect("Walker path can't be empty"));
                 if self.walker.path.is_empty() {
                     self.state = MazeState::Finished;
-                    self.tracks
-                        .push(std::mem::take(&mut self.backtrack));
+                    self.tracks.push(std::mem::take(&mut self.backtrack));
                 }
             }
         }
@@ -229,11 +232,16 @@ impl Maze {
         }
         println!("{data}");
     }
-    
-	pub fn p(&mut self) {
-		self.tracks = self.tracks.clone().into_iter().filter(|track| track.len() > 10).collect();
-	}
-	
+
+    pub fn p(&mut self) {
+        self.tracks = self
+            .tracks
+            .clone()
+            .into_iter()
+            .filter(|track| track.len() > 10)
+            .collect();
+    }
+
     fn is_outside(&self, pos: GridPosition) -> bool {
         pos.x < 0 || pos.y < 0 || pos.x >= self.width as i32 || pos.y >= self.height as i32
     }

@@ -21,7 +21,7 @@ fn main() {
     ));
     let decorations = SETTINGS.read().unwrap().decorations;
     let window = Window::new_with_options(
-        "FLOATING",
+        "Amazing Screensaver",
         WindowCreationOptions::new_windowed(window_size, Some(WindowPosition::Center))
             .with_decorations(decorations)
             .with_transparent(true),
@@ -62,10 +62,25 @@ impl App {
     }
 }
 
+pub fn theme() -> (f32, f32) {
+    let bg = match &*SETTINGS.read().unwrap().bg_theme {
+        "dark" => 1.0,
+        "light" => 0.0,
+        _ => 0.0,
+    };
+    let fg = match &*SETTINGS.read().unwrap().fg_theme {
+        "dark" => 1.0,
+        "light" => 0.0,
+        _ => 0.0,
+    };
+
+    (fg, bg)
+}
+
 impl WindowHandler for App {
     fn on_draw(&mut self, helper: &mut WindowHelper<()>, graphics: &mut Graphics2D) {
         self.step += 1;
-        graphics.clear_screen(Color::from_gray(0.87));
+        graphics.clear_screen(Color::from_gray((theme().1 - 0.87).abs()));
         self.maze.draw(graphics, self.step);
 
         if self.autoplay {
